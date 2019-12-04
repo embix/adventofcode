@@ -2,12 +2,18 @@
 
 void Main()
 {
-	var cases = testcases;
+	var cases = 
+		//testcases;
+		Enumerable.Range(puzzleMin, puzzleMax-puzzleMin+1)
+		.Select(i=>new TestCase{
+			Password = i.ToString()
+		}).ToList();
+	cases.Last().Dump();
 	var meetingCount = 0;
 	foreach(var pw in cases)
 	{
 		var isMeetingCriteria = IsMeetingCriteria(pw.Password);
-		isMeetingCriteria.Dump($"{pw.Password} expected to meet criteria {pw.IsMeetingCriteria}");
+		//isMeetingCriteria.Dump($"{pw.Password} expected to meet criteria {pw.IsMeetingCriteria}");
 		if(isMeetingCriteria){
 			++meetingCount;
 		}
@@ -30,7 +36,7 @@ Boolean IsMeetingCriteria(String password)
 	
 	
 	// todo: adjacent are same or increased
-	if(!IsAdjacentSameOrIncreased(password)) return false;
+	if(!HasAdjacentSame(password)) return false;
 	
 	//never decreases
 	if(!IsNeverDecreasing(password)) return false;
@@ -38,22 +44,20 @@ Boolean IsMeetingCriteria(String password)
 	return true;
 }
 
-Boolean IsAdjacentSameOrIncreased(String password)
+Boolean HasAdjacentSame(String password)
 {
 	var i = 0;
 	var currentValue = Int32.Parse(password.Substring(i, 1));
 	while (++i < password.Length)
 	{
 		var nextValue = Int32.Parse(password.Substring(i, 1));
-		if (!(
-			   (nextValue == currentValue)
-			|| (nextValue == currentValue + 1)))
+		if(nextValue == currentValue)
 		{
-			return false;
+			return true;
 		}
 		currentValue = nextValue;
 	}
-	return true;
+	return false;
 }
 
 Boolean IsNeverDecreasing(String password)
