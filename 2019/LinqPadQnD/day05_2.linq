@@ -24,7 +24,7 @@ void Main()
 		//"Jump3 Test 1"
 		//"Jump3 Test 2"
 		//"Jump3 Test 3"
-		//"Producion Part 2 Thermal Radiator"
+		"Producion Part 2 Thermal Radiator"
 	).Single();
 	
 	Int32[] ram = testCase.RamInit.ToList().ToArray();// get fresh copy
