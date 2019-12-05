@@ -18,7 +18,12 @@ void Main()
 		//"Part2 Test 4-2"
 		//"Part2 Test 4-3"
 		//"Jump1 Test 1"
-		"Jump1 Test 2"
+		//"Jump1 Test 2"
+		//"Jump2 Test 1"
+		//"Jump2 Test 2"
+		//"Jump3 Test 1"
+		//"Jump3 Test 2"
+		//"Jump3 Test 3"
 		//"Producion Part 2 Thermal Radiator"
 	).Single();
 	
@@ -143,6 +148,37 @@ AppTest[] appTests = new AppTest[]{
 		InputInit = new int[]{2},
 		ExpectedOutput = new int[]{1},
 	},
+	new AppTest{
+		Name = "Jump2 Test 1",
+		RamInit = _pt2j2Input,
+		InputInit = new int[]{0},
+		ExpectedOutput = new int[]{0},
+	},
+	new AppTest{
+		Name = "Jump2 Test 2",
+		RamInit = _pt2j2Input,
+		InputInit = new int[]{2},
+		ExpectedOutput = new int[]{1},
+	},
+		new AppTest{
+		Name = "Jump3 Test 1",
+		RamInit = _pt2j3Input,
+		InputInit = new int[]{7},
+		ExpectedOutput = new int[]{999},
+	},
+	new AppTest{
+		Name = "Jump3 Test 2",
+		RamInit = _pt2j3Input,
+		InputInit = new int[]{8},
+		ExpectedOutput = new int[]{1000},
+	},
+
+	new AppTest{
+		Name = "Jump3 Test 3",
+		RamInit = _pt2j3Input,
+		InputInit = new int[]{9},
+		ExpectedOutput = new int[]{1001},
+	},
 };
 static Int32[] _pt2j3Input = new int[]{3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99};
 static Int32[] _pt2j2Input = new int[]{3,3,1105,-1,9,1101,0,0,12,4,12,99,1};
@@ -253,6 +289,11 @@ void ProcessStep(Int32[] ram, Int32 ip, ref List<Int32> inputChannel, ref List<I
 					var new_ip = ReadByMode(Arg2Mode);
 					ip = new_ip;
 				}
+				else
+				{
+					// need to increment ip as we did not read arg2 yet
+					++ip;
+				}
 				break;
 			case 6:
 				// jz
@@ -261,6 +302,9 @@ void ProcessStep(Int32[] ram, Int32 ip, ref List<Int32> inputChannel, ref List<I
 				{
 					var new_ip = ReadByMode(Arg2Mode);
 					ip = new_ip;
+				}else{
+					// need to increment ip as we did not read arg2 yet
+					++ip;
 				}
 				break;
 			case 7:
