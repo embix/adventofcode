@@ -4,13 +4,17 @@ void Main()
 {
 	Int32[] ram = ramInput.ToList().ToArray();// get fresh copy
 	//Init(ram, noun, verb);
-	var inputChannel = new List<Int32>();
+	var inputChannel = new []{1}.ToList();// 1 == air conditioner
 	var outputChannel = new List<Int32>();
 	ProcessStep(ram, 0, ref inputChannel, ref outputChannel);
-	ram.Dump();
+	ram.Dump("ram");
+	outputChannel.Dump("output");
 }
 
-Int32[] ramInput = new[]{1002,4,3,4,33};
+Int32[] ramInput = 
+	new int[]{3,0,4,0,99};// requires input, provides output
+	//new[]{1002,4,3,4,33};
+	//new []{1101,100,-1,4,0};
 
 void Init(Int32[] ram, Int32 noun, Int32 verb)
 {
@@ -94,6 +98,7 @@ void ProcessStep(Int32[] ram, Int32 ip, ref List<Int32> inputChannel, ref List<I
 			case 3:
 				var input = inputChannel[0];
 				inputChannel.RemoveAt(0);
+				WriteByMode(Arg1Mode, input);
 				break;
 			case 4:
 				var output = ReadByMode(Arg1Mode);
