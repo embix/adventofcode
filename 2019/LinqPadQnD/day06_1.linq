@@ -93,49 +93,40 @@ static SoiTree ParseAsSoiTree(string multiLineInput){
 	var root = CelestialBody.CreateUniversalCenterOfMass();
 	var soiTree = new SoiTree{Root = root};
 	var lines = multiLineInput.Split("\n");
-	// O(n^2) ad-hoc "sorting" the input - if the input is sane that is,
-	// does not even terminate on bogus input (would need full queue rotation detection for that)
-	// horrible would be the right term for it
 	// TODO: use directory from-to, then starting from COM instead
 	// - any remaining mappings would be other trees in a forrest => hacf
 	
-	var unparsedLines = new Queue<String>();
-	foreach(var line in lines){
-		unparsedLines.Enqueue(line);
-	}
-	
-	while(unparsedLines.Any())
+	var fromToMapping = lines
+		.Select(l=>l.Split(")"))
+		.Select(fromTo=>new{
+			// solve \r\n related issues
+			from = fromTo[0].Trim(),
+			to = fromTo[1].Trim()
+		})
+		.ToLookup(m=>m.from, m=>m.to);
+	var unfinisheds = new Queue<CelestialBody>();
+	unfinisheds.Enqueue(root);
+	while (unfinisheds.Any())
 	{
-		var line = unparsedLines.Dequeue();
-		var fromTo = line.Split(")");
-		var from = fromTo[0].Trim();
-		var to = fromTo[1].Trim();// solve \r\n related issues
-		
-		CelestialBody parent;
-		var parentExists = soiTree.TryGet(from, out parent);
-		if(!parentExists)
-		{
-			// not yet, maybe it comes up later in the input :-/
-			// maybe next time
-			// we /could/ check that with a dictionary...
-			unparsedLines.Enqueue(line);						
-			continue;
-			
-			//line.Dump($"Parent {from} does not exist in soi tree");
-			//soiTree.Dump("DEBUG: SOI Tree");
-			//throw new Exception("Halt and Catch Fire");
+		CelestialBody currentNode = unfinisheds.Dequeue();
+		if(fromToMapping.Contains(currentNode.Name)){
+			var unconnectedChildren = fromToMapping[currentNode.Name];
+
+			foreach (var child in unconnectedChildren)
+			{
+				CelestialBody parent = currentNode;
+				CelestialBody newBody;
+				var newBodyExists = soiTree.TryGet(child, out newBody);// still slow - another dictionary would help
+				if (newBodyExists)
+				{
+					$"Cannot add {child} to orbit of {parent.Name} as it already directly orbits {newBody.Parent}".Dump("Error");
+					soiTree.Dump("DEBUG: SOI Tree");
+					throw new Exception("Halt and Catch Fire");
+				}
+				var childBody = parent.AddNewOrbitter(child);
+				unfinisheds.Enqueue(childBody);
+			}
 		}
-		
-		CelestialBody newBody;
-		var newBodyExists = soiTree.TryGet(to, out newBody);
-		if(newBodyExists)
-		{
-			line.Dump($"Cannot add {to} to orbit of {from} as it already directly orbits {newBody.Parent}");
-			soiTree.Dump("DEBUG: SOI Tree");
-			throw new Exception("Halt and Catch Fire");
-		}
-		
-		parent.AddNewOrbitter(to);
 	}
 	return soiTree;
 }
