@@ -93,8 +93,20 @@ static SoiTree ParseAsSoiTree(string multiLineInput){
 	var root = CelestialBody.CreateUniversalCenterOfMass();
 	var soiTree = new SoiTree{Root = root};
 	var lines = multiLineInput.Split("\n");
-	foreach(var line in lines)
+	// O(n^2) ad-hoc "sorting" the input - if the input is sane that is,
+	// does not even terminate on bogus input (would need full queue rotation detection for that)
+	// horrible would be the right term for it
+	// TODO: use directory from-to, then starting from COM instead
+	// - any remaining mappings would be other trees in a forrest => hacf
+	
+	var unparsedLines = new Queue<String>();
+	foreach(var line in lines){
+		unparsedLines.Enqueue(line);
+	}
+	
+	while(unparsedLines.Any())
 	{
+		var line = unparsedLines.Dequeue();
 		var fromTo = line.Split(")");
 		var from = fromTo[0].Trim();
 		var to = fromTo[1].Trim();// solve \r\n related issues
@@ -103,9 +115,15 @@ static SoiTree ParseAsSoiTree(string multiLineInput){
 		var parentExists = soiTree.TryGet(from, out parent);
 		if(!parentExists)
 		{
-			line.Dump($"Parent {from} does not exist in soi tree");
-			soiTree.Dump("DEBUG: SOI Tree");
-			throw new Exception("Halt and Catch Fire");
+			// not yet, maybe it comes up later in the input :-/
+			// maybe next time
+			// we /could/ check that with a dictionary...
+			unparsedLines.Enqueue(line);						
+			continue;
+			
+			//line.Dump($"Parent {from} does not exist in soi tree");
+			//soiTree.Dump("DEBUG: SOI Tree");
+			//throw new Exception("Halt and Catch Fire");
 		}
 		
 		CelestialBody newBody;
