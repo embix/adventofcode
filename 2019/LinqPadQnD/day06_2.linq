@@ -6,11 +6,12 @@ void Main()
 		.Where(t=>t.Name==
 			//"Part 1 Test"
 			//"Part 1 Production",
-			"Part 2 Test"
+			//"Part 2 Test"
+			"Part 2 Production"
 		).Single();
 	
-	var soiTree = ParseAsSoiTree(testCase.MapInput);
-	soiTree.Dump("Parsed SOI tree");
+	//var soiTree = ParseAsSoiTree(testCase.MapInput);
+	//soiTree.Dump("Parsed SOI tree");
 	testCase.RunSelfCheck();
 }
 
@@ -126,6 +127,20 @@ TestCase[] TestCases = new TestCase[]{
 			path.Dump();
 			(path.Count()-1).Dump("orbital transfers required");
 			4.Dump("EXPECTED");
+		}
+	},
+	new TestCase{
+		Name = "Part 2 Production",
+		MapInput = ProductionMapStringInput,
+		RunSelfCheck = () =>{
+			var soiTree = ParseAsSoiTree(ProductionMapStringInput);
+			soiTree.TryGet("YOU", out var you);
+			soiTree.TryGet("SAN", out var san);
+			var currentYouSoi = you.Parent;
+			var targetYouSoi = san.Parent;
+			var path = soiTree.GetPathFromTo(currentYouSoi,targetYouSoi);
+			String.Join("-", path.Select(p=>p.Name)).Dump();
+			(path.Count()-1).Dump("orbital transfers required");
 		}
 	}
 };
