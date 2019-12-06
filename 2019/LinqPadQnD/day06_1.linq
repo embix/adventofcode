@@ -4,8 +4,8 @@ void Main()
 {
 	var testCase = TestCases
 		.Where(t=>t.Name==
-			//"Part 1 Test"
-			"Part 1 Production"
+			"Part 1 Test"
+			//"Part 1 Production"
 		).Single();
 	
 	var soiTree = ParseAsSoiTree(testCase.MapInput);
@@ -69,6 +69,17 @@ TestCase[] TestCases = new TestCase[]{
 							isParentCountEqualTo3,
 							testPassed
 						}.Dump("TEST 1 FAILED ( D Node) ");
+					}
+				},
+				()=>{
+					var totalOrbitCount = soiTree.GetTotalOrbitCount();
+					var is42 = totalOrbitCount==42;
+					var testPassed = is42;
+					if(!testPassed){
+						new {
+							totalOrbitCount,
+							is42,
+						}.Dump("TEST Integration FAILED");
 					}
 				}
 			};
@@ -147,6 +158,7 @@ struct SoiTree
 		var totalOrbitCount = 0;
 		var nodes = new Dictionary<CelestialBody,Int32>();
 		Queue<CelestialBody> toVisit = new Queue<CelestialBody>();
+		toVisit.Enqueue(Root);
 		while(toVisit.Any()){
 			var visiting = toVisit.Dequeue();
 			var visitingParentCount = visiting.GetParents().Count();
