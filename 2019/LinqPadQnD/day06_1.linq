@@ -4,8 +4,8 @@ void Main()
 {
 	var testCase = TestCases
 		.Where(t=>t.Name==
-			"Part 1 Test"
-			//"Part 1 Production"
+			//"Part 1 Test"
+			"Part 1 Production"
 		).Single();
 	
 	var soiTree = ParseAsSoiTree(testCase.MapInput);
