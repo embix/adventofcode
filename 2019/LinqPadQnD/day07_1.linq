@@ -28,12 +28,29 @@ void Main()
 
 public List<Int32[]> GetAllPermutations()
 {
-	var permuatitions = new List<Int32[]>();
-	
-	// todo: permutations!
-	permuatitions.Add(new[]{4,3,2,1,0});
-	return permuatitions;
+	var permuatitions = Permutate(new[]{0,1,2,3,4}, new Int32[0]);
+	return permuatitions.Select(p=>p.ToArray()).ToList();
 }
+
+public List<List<Int32>> Permutate(Int32[] remainingItems, Int32[] currentChain)
+{
+	var results = new List<List<Int32>>();
+	if(remainingItems.Length==0){
+		results.Add(currentChain.ToList());
+		return results;
+	}
+
+	foreach(var item in remainingItems)
+	{
+		var itemChain = currentChain.ToList();// copy
+		itemChain.Add(item);
+		var itemRemainings = remainingItems.Except(new []{item}).ToArray();
+		var partResults = Permutate(itemRemainings, itemChain.ToArray());
+		results.AddRange(partResults);
+	}
+	return results;
+}
+
 
 public Int32 GetFinalOutputOf(Int32[] sequence, Int32[] program)
 {
