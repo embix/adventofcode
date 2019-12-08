@@ -5,7 +5,7 @@
 const String day08InputPath = @"C:\git\adventofcode\2019\Inputs\day08.input.txt";
 void Main()
 {
-	var testCase = test2;
+	var testCase = part1;
 	var intermediateImage = Decode(testCase.EncodedImage);
 	#if DUMP
 	intermediateImage.Dump("Intermediate"); 
@@ -13,6 +13,9 @@ void Main()
 	//GetCode(intermediateImage).Dump("Code");
 	var finalImage = GetFinalImage(intermediateImage);
 	finalImage.Dump("Final Image");
+	
+	Util.RawHtml ("<style> body, pre { font-family:consolas } </style>").Dump();
+	PrettyPrint(finalImage).Dump();
 }
 
 struct EncodedImage
@@ -178,4 +181,24 @@ PixelLayer GetFinalImage(IntermediateImage intermediate)
 	}
 
 	return finalImage;
+}
+
+String Print(PixelLayer layer)
+{
+	var lines = layer.Select(line=>String.Join("", line));
+	return String.Join("\n",lines);
+}
+
+String PrettyPrint(PixelLayer layer)
+{
+	var lines = layer
+		.Select(line=>line.Select(c=>{
+			switch(c){
+				case 0: return " ";
+				case 1: return "*";
+				default: return c.ToString();
+			}
+		}))
+		.Select(line => String.Join("", line));
+	return String.Join("\n", lines);
 }
