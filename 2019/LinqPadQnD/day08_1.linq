@@ -1,10 +1,15 @@
 <Query Kind="Program" />
 
+//#define DEBUG
+
+const String day08InputPath = @"C:\git\adventofcode\2019\Inputs\day08.input.txt";
 void Main()
 {
-	var testCase = test1;
-	var decodedImage = Decode(test1.EncodedImage);
-	decodedImage.Dump("Decoded");
+	var testCase = part1;
+	var decodedImage = Decode(testCase.EncodedImage);
+	#if DUMP
+	decodedImage.Dump("Decoded"); 
+	#endif
 	GetCode(decodedImage).Dump("Code");
 }
 
@@ -37,6 +42,13 @@ TestCase test1 = new TestCase{
 			new PixelLine{0,1,2}
 		}
 	}
+};
+TestCase part1 = new TestCase{
+	EncodedImage = new EncodedImage{
+		SizeX = 25,
+		SizeY = 6,
+		EncodedPixels = File.ReadAllText(day08InputPath)
+	}	
 };
 
 // glorified typedefs
@@ -91,7 +103,10 @@ Int32 GetCode(DecodedImage image)
 		layer = layer,
 		digits = layer.SelectMany(line=>line.Select(row=>row))
 	}).ToList()
-	.Dump("layers");
+	#if DUMP
+	.Dump("layers")
+	#endif
+	;
 	// do it for all layers, althoug only required for code layer
 	var layerStats = mappedLayers.Select(layer=>new{
 		layer.layer,
@@ -100,10 +115,15 @@ Int32 GetCode(DecodedImage image)
 		oneCount = layer.digits.Where(d=>d==1).Count(),
 		twoCount = layer.digits.Where(d=>d==2).Count(),
 	}).ToList()
-	.Dump("layer stats");
+	#if DUMP
+	.Dump("layer stats")
+	#endif
+	;
 	var codeLayer = layerStats
 		.OrderBy(l=>l.zeroCount)
+		#if DUMP
 		.Take(2).Dump("top 2 candidates - should have different 0-digit count")
+		#endif
 		.First();
 	return codeLayer.oneCount*codeLayer.twoCount;
 }
