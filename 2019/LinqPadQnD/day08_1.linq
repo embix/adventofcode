@@ -5,6 +5,7 @@ void Main()
 	var testCase = test1;
 	var decodedImage = Decode(test1.EncodedImage);
 	decodedImage.Dump("Decoded");
+	GetCode(decodedImage).Dump("Code");
 }
 
 struct EncodedImage
@@ -82,4 +83,27 @@ DecodedImage Decode(EncodedImage encoded)
 		layers.Add(currentLayer);
 	}	
 	return layers;
+}
+
+Int32 GetCode(DecodedImage image)
+{
+	var mappedLayers = image.Select(layer=>new{
+		layer = layer,
+		digits = layer.SelectMany(line=>line.Select(row=>row))
+	}).ToList()
+	.Dump("layers");
+	// do it for all layers, althoug only required for code layer
+	var layerStats = mappedLayers.Select(layer=>new{
+		layer.layer,
+		layer.digits,
+		zeroCount = layer.digits.Where(d=>d==0).Count(),
+		oneCount = layer.digits.Where(d=>d==1).Count(),
+		twoCount = layer.digits.Where(d=>d==2).Count(),
+	}).ToList()
+	.Dump("layer stats");
+	var codeLayer = layerStats
+		.OrderBy(l=>l.zeroCount)
+		.Take(2).Dump("top 2 candidates - should have different 0-digit count")
+		.First();
+	return codeLayer.oneCount*codeLayer.twoCount;
 }
