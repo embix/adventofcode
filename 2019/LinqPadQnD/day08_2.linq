@@ -1,6 +1,6 @@
 <Query Kind="Program" />
 
-#define DUMP
+//#define DUMP
 
 const String day08InputPath = @"C:\git\adventofcode\2019\Inputs\day08.input.txt";
 void Main()
@@ -12,7 +12,9 @@ void Main()
 	#endif
 	//GetCode(intermediateImage).Dump("Code");
 	var finalImage = GetFinalImage(intermediateImage);
+	#if DUMP
 	finalImage.Dump("Final Image");
+	#endif
 	
 	Util.RawHtml ("<style> body, pre { font-family:consolas } </style>").Dump();
 	PrettyPrint(finalImage).Dump();
