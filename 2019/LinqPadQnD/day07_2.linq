@@ -6,24 +6,41 @@
 void Main()
 {
 	var testCases = new[]{
-		test1, test2 // both tests took 1m07s on my i3770
-		,part2
+		//test1, test2 // both tests took 1m07s on my i3770
+		part2
+		// 1st Try: 12869164
+		// 2nd Try: 12917307 (8,6,5,7,9)
+		// 3rd Try: 12890160 (8,7,6,5,9)
+		// 4th Try: 12851738 (7,8,5,6,9)
+		// -> BlockingCollection does not guarantee order :-/
+		// explicitly use ConcurrentQueue:
+		// 5th Try: 12925499 (6,8,5,7,9) 41secs
+		// 6th Try: 12932154 (6,8,7,5,9) 45secs
+		// 7th Try: 12925499 (6,8,5,7,9) 41secs - again!
+		// 8th Try: 12872734 (7,8,6,5,9) 44secs
+		// 9th Try: 12891691 (6,5,8,7,9) 29secs
+		// removed shovel, upped Q size to 2
+		//10th Try: 12932154 (6,8,7,5,9) - in LinqPad5 and LinqPad6 simultaniously
+		//         -> thats the correct result (we already had that - amoung others)
 	};
 	foreach(var test in testCases){
 		var permutations = GetAllPermutations();
-		var maxPerfomer = permutations.AsParallel().Select(s => new
+		var allResults = permutations.AsParallel().Select(s => new
 		{
 			Sequence = s,
 			FinalOutput = GetFinalOutputOf(s, test.Program),
-		}).OrderByDescending(p => p.FinalOutput).First();
+		}).ToList();
+		var maxPerformer = allResults
+			.OrderByDescending(p => p.FinalOutput)
+			.First();		
 		
 		var result = new {
 			test.ExpectedSequence,
-			maxPerfomer.Sequence,
-			SequencesMatch = String.Join("-",test.ExpectedSequence)==String.Join("-",maxPerfomer.Sequence),
+			maxPerformer.Sequence,
+			SequencesMatch = String.Join("-",test.ExpectedSequence)==String.Join("-",maxPerformer.Sequence),
 			test.ExpectedMax,
-			maxPerfomer.FinalOutput,
-			MaxMatch = test.ExpectedMax==maxPerfomer.FinalOutput,
+			maxPerformer.FinalOutput,
+			MaxMatch = test.ExpectedMax==maxPerformer.FinalOutput,
 		};
 		var testOkay = result.SequencesMatch&&result.MaxMatch;
 		result.Dump(testOkay?"Test Passed":"Test Failed");
@@ -57,37 +74,30 @@ public List<List<Int32>> Permutate(Int32[] remainingItems, Int32[] currentChain)
 
 public Int32 GetFinalOutputOf(Int32[] sequence, Int32[] program)
 {
-	Int32 latestAmp5Output=0;// its also amp1's first input aka value input
-	Boolean shovelRequired = true;// so we can cancel our shovel task
+	Int32 valueInput=0;
 	
 	// wire up by hand so we dont mess it up with off-by-1 automation
-	var qShovelA = new BlockingCollection<Int32>();
-	var qAB = new BlockingCollection<Int32>();
-	var qBC = new BlockingCollection<Int32>();
-	var qCD = new BlockingCollection<Int32>();
-	var qDE = new BlockingCollection<Int32>();
-	var qEShovel = new BlockingCollection<Int32>();
+	BlockingCollection<T> GetNewChannel<T>(){
+		return new BlockingCollection<T>(new ConcurrentQueue<T>(), 2);
+	}
+	
+	var qAB = GetNewChannel<Int32>();
+	var qBC = GetNewChannel<Int32>();
+	var qCD = GetNewChannel<Int32>();
+	var qDE = GetNewChannel<Int32>();
+	var qEA = GetNewChannel<Int32>();
 		
 	// set up sequence inputs:
-	qShovelA.Add(sequence[0]);
+	qEA.Add(sequence[0]);
 	qAB.Add(sequence[1]);
 	qBC.Add(sequence[2]);
 	qCD.Add(sequence[3]);
 	qDE.Add(sequence[4]);
-	qEShovel.Add(latestAmp5Output);
-	
-	var shovelTask = Task.Run(()=>{
-		while(shovelRequired)// stop if all cpu's haltet
-		{
-			var eOutput = qEShovel.Take();
-			latestAmp5Output = eOutput;// save for later
-			qShovelA.Add(eOutput);
-		}
-	});
-	
+	qEA.Add(valueInput);
+		
 	var aTask = Task.Run(()=>{
 		Int32[] ram = program.ToList().ToArray();// work on copy
-		ProcessConcurrently(ram, 0, qShovelA, qAB);
+		ProcessConcurrently(ram, 0, qEA, qAB);
 	});
 	var bTask = Task.Run(() =>	{
 		Int32[] ram = program.ToList().ToArray();// work on copy
@@ -103,11 +113,11 @@ public Int32 GetFinalOutputOf(Int32[] sequence, Int32[] program)
 	});
 	var eTask = Task.Run(() => {
 		Int32[] ram = program.ToList().ToArray();// work on copy
-		ProcessConcurrently(ram, 0, qDE, qEShovel);
+		ProcessConcurrently(ram, 0, qDE, qEA);
 	});
 
 	Task.WaitAll(new[]{aTask,bTask,cTask,dTask,eTask});
-	shovelRequired = false;
+	var latestAmp5Output = qEA.Take();	
 	return latestAmp5Output;
 }
 
