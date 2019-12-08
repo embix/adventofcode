@@ -1,6 +1,6 @@
 <Query Kind="Program" />
 
-//#define DEBUG
+//#define DUMP
 
 const String day08InputPath = @"C:\git\adventofcode\2019\Inputs\day08.input.txt";
 void Main()
