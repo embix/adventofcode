@@ -6,12 +6,17 @@
 
 void Main()
 {
-	//var testCases = new[]{
-	//	test1,test2//,test3,
-	//};
+	var testCases = new[]{
+		quine
+	};
+    foreach(var testCase in testCases)
+    {
+        var passed = testCase.HasTestPassed();
+        
+    }
 }
 
-BlockingCollection<TWord> GetNewChannel<TWord>(Int32 blockingBufferSize=0 /*unbounded by default so not blocking add operation*/)
+static BlockingCollection<TWord> GetNewChannel<TWord>(Int32 blockingBufferSize=1)
 {
 	return new BlockingCollection<TWord>(new ConcurrentQueue<TWord>(), blockingBufferSize);
 }
@@ -36,10 +41,14 @@ class BigRam // : IRam<BigInteger>
 {
 	Dictionary<BigInteger,BigInteger> _content;
 	
-	public BigRam(BigInteger[] _content)
+	public BigRam(BigInteger[] content)
 	{
-		_content.Select((cellValue,cellIndex)=>new{cellValue,cellIndex})
-		        .ToDictionary(cell=>cell.cellIndex, cell=>cell.cellValue);
+		_content = content
+            .Select((cellValue,cellIndex)=>new{
+                CellValue=cellValue,
+                CellIndex=(BigInteger)cellIndex}
+            )
+		    .ToDictionary(cell=>cell.CellIndex, cell=>cell.CellValue);
 	}
 	
 	public BigRam(Dictionary<BigInteger,BigInteger> content)
@@ -80,12 +89,37 @@ class BigRam // : IRam<BigInteger>
 }
 
 struct TestCase{
-	public Int32[] Program;
-	public Int32 ExpectedMax;
-	public Int32[] ExpectedSequence;	
+	public BigInteger[] Program;
+    public Func<BigInteger[], Boolean> _testPassed;
+    public Boolean HasTestPassed(){return _testPassed(Program);}
 }
 
-void ProcessStep(BigRam ram, BigInteger ip, BlockingCollection<BigInteger> inputChannel, BlockingCollection<BigInteger> outputChannel)// where TWord : INumeric WHEN? Microsoft - WHEN?
+TestCase quine = new TestCase{
+    Program = new BigInteger[]{109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99},
+    _testPassed = (prg)=>{
+        var ram = new BigRam(prg);
+        BlockingCollection<BigInteger> inputs = GetNewChannel<BigInteger>();
+        BlockingCollection<BigInteger> outputs = GetNewChannel<BigInteger>();
+        Process(ram, 0, inputs, outputs);
+        foreach(var expected in prg){
+            if(outputs.TryTake(out var got)){
+                if (expected != got)
+                {
+                    $"expected {expected} but got {got}".Dump("FAIL");
+                    return false;
+                }
+            }
+            else{
+                "expected more outputs".Dump("FAIL");
+                return false;
+            }            
+        }
+        var passed = !outputs.Any();
+        return passed;
+    },    
+};
+
+static void Process(BigRam ram, BigInteger ip, BlockingCollection<BigInteger> inputChannel, BlockingCollection<BigInteger> outputChannel)// where TWord : INumeric WHEN? Microsoft - WHEN?
 {
 	while (ip >= 0)
 	{
@@ -225,6 +259,10 @@ void ProcessStep(BigRam ram, BigInteger ip, BlockingCollection<BigInteger> input
 				var eq_cmp = eq_lhs == eq_rhs ? 1 : 0;// no cast - make it explicit
 				WriteByMode(Arg3Mode, eq_cmp);
 				break;
+            case 9:
+                // adjust relative base
+                relativeBase += ReadByMode(Arg1Mode);
+                break;
 			case 99:
 				return;
 			default:
