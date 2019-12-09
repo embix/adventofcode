@@ -180,9 +180,9 @@ public class ConsoleOutputChannel : IOutputChannel
 
 static void Process(BigRam ram, BigInteger ip, IInputChannel inputChannel, IOutputChannel outputChannel)// where TWord : INumeric WHEN? Microsoft - WHEN?
 {
+    BigInteger relativeBase = 0;
 	while (ip >= 0)
-	{
-        BigInteger relativeBase = 0;
+	{        
 		BigInteger fullOpCode = ram[ip];
         ip+=1;
 		BigInteger Arg1Mode = 0;
