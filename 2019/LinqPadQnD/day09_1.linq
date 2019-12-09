@@ -88,6 +88,13 @@ class BigRam // : IRam<BigInteger>
 		get { return GetAt(index); }
 		set { SetAt(index, value); }
 	}
+    
+    public void DumpStoredAddresses(String msg = null){
+        _content.Select(kvp=>new{
+            Address=kvp.Key,
+            Value=kvp.Value
+        }).OrderBy(a=>a.Address).Dump(msg);
+    }
 }
 
 struct TestCase{
@@ -102,7 +109,10 @@ TestCase quine = new TestCase{
         var ram = new BigRam(prg);
         IInputChannel inputs = new EmptyInputChannel();
         IOutputChannel outputs = new ConsoleOutputChannel();
+        ram.DumpStoredAddresses("Ram before");
         Process(ram, 0, inputs, outputs);
+        ram.DumpStoredAddresses("Ram after");
+        
         //foreach(var expected in prg){
         //    if(outputs.TryTake(out var got)){
         //        if (expected != got)
@@ -172,7 +182,7 @@ static void Process(BigRam ram, BigInteger ip, IInputChannel inputChannel, IOutp
 {
 	while (ip >= 0)
 	{
-        BigInteger relativeBaseOffset = 0;
+        BigInteger relativeBase = 0;
 		BigInteger fullOpCode = ram[ip];
         ip+=1;
 		BigInteger Arg1Mode = 0;
@@ -215,7 +225,7 @@ static void Process(BigRam ram, BigInteger ip, IInputChannel inputChannel, IOutp
                     // Relative Mode
                     var relativePos = ip;
                     ip += 1;
-                    return ram[relativeBaseOffset+ram[relativePos]];
+                    return ram[relativeBase+ram[relativePos]];
 				default:
 					mode.Dump("invalid read mode");
 					throw new Exception("Halt and Catch fire");
@@ -245,7 +255,7 @@ static void Process(BigRam ram, BigInteger ip, IInputChannel inputChannel, IOutp
                 case 2:
                     var relativePos = ip;
                     ip+=1;
-                    ram[relativeBaseOffset+ram[relativePos]] = value;
+                    ram[relativeBase+ram[relativePos]] = value;
                     return;
 				default:
 					mode.Dump("invalid read mode");
@@ -324,7 +334,7 @@ static void Process(BigRam ram, BigInteger ip, IInputChannel inputChannel, IOutp
             case 9:
                 // adjust relative base
                 var increment = ReadByMode(Arg1Mode);
-                relativeBaseOffset += increment;
+                relativeBase += increment;
                 break;
 			case 99:
 				return;
