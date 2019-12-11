@@ -74,16 +74,24 @@ public Boolean TestAngleDetermination()
         }.Select(testCase=>new{
             TestCase=testCase,
             ActualAngle = new DirectionVector { X=testCase.X, Y=testCase.Y}.GetDirectionInDegrees()
-        }).GroupBy(t=>t.TestCase.Angle==t.ActualAngle, (passed,g)=>new{
-            Passed=passed,
-            Cases=g.Select(t=>new{
-                t.TestCase.X,
-                t.TestCase.Y,
-                ExpectedAngle=t.TestCase.Angle,
-                t.ActualAngle
-            })
+        }).GroupBy(t=>
+            DoubleEqualsWithinEpsilon(t.TestCase.Angle,t.ActualAngle, 0.0000001),
+            (passed,g)=>new{
+                Passed=passed,
+                Cases=g.Select(t=>new{
+                    t.TestCase.X,
+                    t.TestCase.Y,
+                    ExpectedAngle=t.TestCase.Angle,
+                    t.ActualAngle
+                })
         }).ToList().Dump();
     return !results.Where(r=>!r.Passed).Any();
+}
+
+Boolean DoubleEqualsWithinEpsilon(Double lhs, Double rhs, Double epsilon)
+{
+    var diff = lhs-rhs;
+    return (Math.Abs(diff)<=epsilon);
 }
 
 class Part1Solution
