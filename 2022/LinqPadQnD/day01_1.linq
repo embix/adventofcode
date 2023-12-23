@@ -1,20 +1,26 @@
 <Query Kind="Program" />
 
-#define SAMPLE
-#define TRACE
+//#define SAMPLE
+//#define TRACE
 void Main()
 {
     var input = GetContent().DumpTrace("Input");
     var cargoByElf = GetCargoByElf(input).DumpTrace("cargo by elf");
+    var ordered =
     cargoByElf
     .Select(e=>new{
         ElfSum=e.Sum(),
         ElfItems=e
     }).DumpTrace("elfsum")
-    .OrderByDescending(e=>e.ElfSum)
+    .OrderByDescending(e=>e.ElfSum);
+    ordered
     .First()
     .ElfSum
-    .Dump("Result"); 
+    .Dump("Result part 1");
+    ordered
+    .Take(3)
+    .Sum(e=>e.ElfSum)
+    .Dump("Result part 2");
 }
 
 List<List<Int32>> GetCargoByElf(IEnumerable<String> input)
